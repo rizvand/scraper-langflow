@@ -11,15 +11,14 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
 
 ## AI Model API Keys Setup
 
-### 1. Google API Key (Optional)
+### 1. Google AI Studio API Key (Optional)
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable required APIs (e.g., Custom Search API, Places API)
-4. Navigate to "Credentials" section
-5. Click "Create Credentials" → "API Key"
-6. Copy the API key
-7. Add to your environment or Dockerfile
+1. Go to [https://aistudio.google.com/apikey]()
+2. Click on Create API Key
+3. Select a project from your existing Google Cloud projects
+4. Create API key in existing project
+5. Copy the API key
+6. Add to your environment or Dockerfile
 
 ## Quick Start
 
