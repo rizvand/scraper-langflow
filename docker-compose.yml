@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  langflow:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: langflow-scraper
+    ports:
+      - "7860:7860"
+    environment:
+      - CHROME_BIN=/usr/bin/chromium
+      - LANGFLOW_DATABASE_URL=postgresql://langflow:langflow@postgres:5432/langflow
+      - LANGFLOW_CONFIG_DIR=app/langflow
+    env_file:
+      - .env.sample
+    volumes:
+      - langflow-data:/app/langflow
+    depends_on:
+      - postgres
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: fastapi-chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      - LANGFLOW_BASE_URL=http://langflow:7860
+    depends_on:
+      - langflow
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: langflow
+      POSTGRES_PASSWORD: langflow
+      POSTGRES_DB: langflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - langflow-postgres:/var/lib/postgresql/data
+
+volumes:
+  langflow-postgres:
+  langflow-data:

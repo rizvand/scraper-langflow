@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Langflow Scraper Chatbot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .json-content {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            color: #495057;
+            position: relative;
+        }
+
+        .message.bot .json-content {
+            background: #f1f3f4;
+            border-color: #d1d5db;
+        }
+
+        .json-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .json-label {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .copy-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.7em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+            opacity: 0.8;
+        }
+
+        .copy-button:hover {
+            background: #5a6fd8;
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e8ed;
+            margin-left: 10px;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-right: 10px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message.user .message-avatar {
+            background: #6c757d;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+        }
+
+        .config-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .config-input {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 0.85em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .config-input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e1e8ed;
+            border-radius: 25px;
+            font-size: 0.9em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.5s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .status-indicator.disconnected {
+            background: #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+                border-radius: 10px;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .config-inputs {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator" id="statusIndicator">
+        <i class="fas fa-circle"></i>
+        <span>Connecting...</span>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1><i class="fas fa-robot"></i> Langflow Scraper Agent</h1>
+            <p>Your intelligent web scraping assistant powered by Langflow</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    Hello! I'm your web scraping assistant. I can help you scrape websites, extract data, and answer questions about web content. Please enter your Langflow Flow ID and API Key (optional) below, then start chatting! I'll display both text responses and formatted JSON data when available.
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="config-inputs">
+                <div class="input-group">
+                    <label for="flowIdInput">Flow ID:</label>
+                    <input 
+                        type="text" 
+                        class="config-input" 
+                        id="flowIdInput" 
+                        placeholder="Enter Langflow Flow ID (required)" 
+                        autocomplete="off"
+                        required
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="apiKeyInput">API Key:</label>
+                    <input 
+                        type="password" 
+                        class="config-input" 
+                        id="apiKeyInput" 
+                        placeholder="Enter Langflow API Key (optional)" 
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+            <form class="chat-input-form" id="chatForm">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="messageInput" 
+                    placeholder="Type your message here..." 
+                    autocomplete="off"
+                    required
+                >
+                <button type="submit" class="send-button" id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class ChatApp {
+            constructor() {
+                this.messagesContainer = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatForm = document.getElementById('chatForm');
+                this.typingIndicator = document.getElementById('typingIndicator');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.flowIdInput = document.getElementById('flowIdInput');
+                this.apiKeyInput = document.getElementById('apiKeyInput');
+                this.sessionId = this.generateSessionId();
+                
+                this.init();
+            }
+
+            init() {
+                this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSubmit(e);
+                    }
+                });
+
+                // Check connection status
+                this.checkHealth();
+                setInterval(() => this.checkHealth(), 30000); // Check every 30 seconds
+            }
+
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            async checkHealth() {
+                try {
+                    const response = await fetch('/health');
+                    const data = await response.json();
+                    
+                    if (data.langflow_connection === 'connected') {
+                        this.updateStatus('Connected', true);
+                    } else {
+                        this.updateStatus('Langflow Disconnected', false);
+                    }
+                } catch (error) {
+                    this.updateStatus('Disconnected', false);
+                }
+            }
+
+            updateStatus(text, connected) {
+                const statusText = this.statusIndicator.querySelector('span');
+                statusText.textContent = text;
+                
+                if (connected) {
+                    this.statusIndicator.classList.remove('disconnected');
+                } else {
+                    this.statusIndicator.classList.add('disconnected');
+                }
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const message = this.messageInput.value.trim();
+                const flowId = this.flowIdInput.value.trim();
+                const apiKey = this.apiKeyInput.value.trim();
+
+                if (!message) return;
+
+                if (!flowId) {
+                    this.addMessage('Please enter a Flow ID before sending a message.', 'bot');
+                    this.flowIdInput.focus();
+                    return;
+                }
+
+                this.addMessage(message, 'user');
+                this.messageInput.value = '';
+                this.setLoading(true);
+
+                try {
+                    const requestBody = {
+                        message: message,
+                        session_id: this.sessionId,
+                        flow_id: flowId
+                    };
+
+                    // Only include api_key if it's provided
+                    if (apiKey) {
+                        requestBody.api_key = apiKey;
+                    }
+
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    this.addBotMessage(data.response);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.addMessage(
+                        `Sorry, I encountered an error: ${error.message}. Please check that Langflow is running and try again.`,
+                        'bot'
+                    );
+                } finally {
+                    this.setLoading(false);
+                }
+            }
+
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = content;
+
+                if (sender === 'bot') {
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                } else {
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(avatar);
+                }
+
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            addBotMessage(responseData) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message bot';
+
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.innerHTML = '<i class="fas fa-robot"></i>';
+
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+
+                let textContent = '';
+                let jsonContent = null;
+
+                try {
+                    // Try to parse the response as JSON
+                    const parsed = JSON.parse(responseData);
+                    if (parsed && typeof parsed === 'object' && parsed.text) {
+                        textContent = parsed.text;
+                        if (parsed.content) {
+                            jsonContent = parsed.content;
+                        }
+                    } else {
+                        // If it doesn't have the expected structure, use as-is
+                        textContent = responseData;
+                    }
+                } catch (e) {
+                    // If parsing fails, treat as plain text
+                    textContent = responseData;
+                }
+
+                // Add the main text content
+                messageContent.textContent = textContent;
+
+                // Add JSON content if present
+                if (jsonContent) {
+                    const jsonContainer = document.createElement('div');
+                    jsonContainer.className = 'json-content';
+                    
+                    // Create header with label and copy button
+                    const jsonHeader = document.createElement('div');
+                    jsonHeader.className = 'json-header';
+                    
+                    const jsonLabel = document.createElement('span');
+                    jsonLabel.className = 'json-label';
+                    jsonLabel.textContent = 'Content Data';
+                    
+                    const copyButton = document.createElement('button');
+                    copyButton.className = 'copy-button';
+                    copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                    
+                    const jsonString = JSON.stringify(jsonContent, null, 2);
+                    copyButton.addEventListener('click', () => this.copyToClipboard(jsonString, copyButton));
+                    
+                    jsonHeader.appendChild(jsonLabel);
+                    jsonHeader.appendChild(copyButton);
+                    
+                    // Create content area
+                    const jsonText = document.createElement('div');
+                    jsonText.textContent = jsonString;
+                    
+                    jsonContainer.appendChild(jsonHeader);
+                    jsonContainer.appendChild(jsonText);
+                    messageContent.appendChild(jsonContainer);
+                }
+
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            setLoading(loading) {
+                if (loading) {
+                    this.sendButton.disabled = true;
+                    this.messageInput.disabled = true;
+                    this.typingIndicator.style.display = 'flex';
+                    this.scrollToBottom();
+                } else {
+                    this.sendButton.disabled = false;
+                    this.messageInput.disabled = false;
+                    this.typingIndicator.style.display = 'none';
+                    this.messageInput.focus();
+                }
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            async copyToClipboard(text, button) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    
+                    // Update button to show success
+                    const originalContent = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    button.classList.add('copied');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.innerHTML = originalContent;
+                        button.classList.remove('copied');
+                    }, 2000);
+                    
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        
+                        // Show success feedback
+                        const originalContent = button.innerHTML;
+                        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        button.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            button.innerHTML = originalContent;
+                            button.classList.remove('copied');
+                        }, 2000);
+                        
+                    } catch (fallbackErr) {
+                        console.error('Fallback copy failed: ', fallbackErr);
+                        button.innerHTML = '<i class="fas fa-times"></i> Failed';
+                        setTimeout(() => {
+                            button.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                        }, 2000);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                }
+            }
+        }
+
+        // Initialize the chat app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatApp();
+        });
+    </script>
+</body>
+</html>
