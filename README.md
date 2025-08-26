@@ -18,7 +18,7 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
 3. Enable required APIs (e.g., Custom Search API, Places API)
 4. Navigate to "Credentials" section
 5. Click "Create Credentials" → "API Key"
-6. Copy the API key (starts with `AIzaSy...`)
+6. Copy the API key
 7. Add to your environment or Dockerfile
 
 ## Quick Start
@@ -40,7 +40,7 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
    Edit the `Dockerfile` and add your Google API keys:
 
    ```dockerfile
-   ENV GOOGLE_API_KEY=AIzaSy-your-google-api-key-here
+   ENV GOOGLE_API_KEY=your-google-api-key-here
    ```
 3. **Build and start the services:**
 
@@ -117,7 +117,7 @@ curl -X POST "http://localhost:8000/chat" \
      -d '{
        "message": "Please scrape the latest news from example.com",
        "session_id": "my-session-123",
-       "flow_id": "93f59fc7-5ea5-439c-ab7b-9520b3423a6d",
+       "flow_id": "langflow-flow-id",
        "api_key": "your-langflow-api-key"
      }'
 ```
