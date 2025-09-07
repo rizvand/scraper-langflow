@@ -16,5 +16,5 @@ RUN mkdir -p /app/static
 # Expose port
 EXPOSE 8000
 
-# Run the FastAPI application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the FastAPI application with no timeout for POST requests
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "0", "--timeout-graceful-shutdown", "0"]

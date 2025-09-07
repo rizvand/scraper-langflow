@@ -10,12 +10,20 @@ services:
       - "7860:7860"
     environment:
       - CHROME_BIN=/usr/bin/chromium
+      - DISPLAY=:99
+      - CHROME_FLAGS=--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-web-security --disable-extensions --disable-plugins --headless
       - LANGFLOW_DATABASE_URL=postgresql://langflow:langflow@postgres:5432/langflow
       - LANGFLOW_CONFIG_DIR=app/langflow
     volumes:
       - langflow-data:/app/langflow
     depends_on:
       - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 8G
 
   fastapi:
     build:

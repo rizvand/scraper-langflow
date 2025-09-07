@@ -57,6 +57,7 @@ async def chat_with_langflow(request: ChatRequest):
             "input_value": request.message,
             "output_type": "chat",
             "input_type": "chat",
+            "session_id": request.session_id
         }
         
         # Add tweaks if needed (for specific flow configuration)
@@ -68,7 +69,7 @@ async def chat_with_langflow(request: ChatRequest):
         
         langflow_payload["tweaks"] = tweaks
         
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             # Use user-provided flow_id, fallback to environment variable
             flow_id = request.flow_id or FLOW_ID
             
@@ -180,7 +181,7 @@ async def chat_with_langflow(request: ChatRequest):
 async def health_check():
     """Health check endpoint"""
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             response = await client.get(f"{LANGFLOW_BASE_URL}/health")
             langflow_healthy = response.status_code == 200
     except:
@@ -196,7 +197,7 @@ async def health_check():
 async def debug_flows(api_key: Optional[str] = None):
     """Debug endpoint to check Langflow projects and flows"""
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             # Prepare headers with API key (user-provided or from environment)
             headers = build_langflow_headers(api_key)
             
@@ -232,7 +233,7 @@ async def debug_test_flow(flow_id: Optional[str] = None, api_key: Optional[str] 
         if not flow_id:
             return {"error": "No flow ID provided and no FLOW_ID environment variable set"}
         
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=None) as client:
             
             # Test the flow
             langflow_payload = {

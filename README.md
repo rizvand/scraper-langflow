@@ -5,27 +5,28 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
 ## Features
 
 - **Langflow Integration**: Flow-based AI agent for web scraping
-- **Zendriver Support**: Advanced browser automation with Chrome/Chromium for dynamic content scraping
 - **FastAPI Backend**: RESTful API to interact with Langflow flows
 - **Web Interface**: HTML chatbot interface with JSON data display
+- **Stealth Browser MCP**: Browser automation that bypasses Cloudflare, antibots, and social media blocks ([https://github.com/vibheksoni/stealth-browser-mcp]())
 
-## AI Model API Keys Setup
+## API Keys Setup
 
-### 1. Google AI Studio API Key (Optional)
+### 1. OpenAI API Key
 
-1. Go to [https://aistudio.google.com/apikey]()
-2. Click on Create API Key
-3. Select a project from your existing Google Cloud projects
-4. Create API key in existing project
-5. Copy the API key
-6. Add to your environment or Dockerfile
+- This step is required to use available LLM model to run our AI Agent.
+- You can obtain free limited quota to test out this scraper chatbot.
+- It is recommended to use OpenAI model with at least `gpt-4.1-mini`
+
+1. Sign up to OpenAI Platform [https://platform.openai.com/]()
+2. Go to [https://platform.openai.com/settings/organization/api-keys]() then "+ Create new secret key"
+3. Copy the API key to `OPENAI_API_KEY=...` in Dockerfile
 
 ## Quick Start
 
 ### Prerequisites
 
 - Docker and Docker Compose installed
-- Google API key (required for the AI agent)
+- OpenAI API Key
 
 ### Setup
 
@@ -39,7 +40,7 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
    Edit the `Dockerfile` and add your Google API keys:
 
    ```dockerfile
-   ENV GOOGLE_API_KEY=your-google-api-key-here
+   ENV OPENAI_API_KEY=your-openai-api-key-here
    ```
 3. **Build and start the services:**
 
@@ -54,12 +55,24 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
 5. **Manual Setup for Langflow**
 
    - Open Langflow UI (http://localhost:7860)
-   - Navigate to your project (e.g., "Starter Project")
-   - Navigate to MCP Server > JSON
-   - Copy MacOS/Linux MCP Server JSON Config
    - Go to Flows > [main] scraper agent
-   - Inside MCP Tools, click on MCP Server > + Add MCP Server > Paste in JSON Config > Add Server
-   - In the Agent component, make sure to use `gemini-2.5-flash` model
+   - In the Agent component:
+     - Please make sure to manually set OpenAI API Key if it is not automatically filled in.
+     - Set Language Model to `OpenAI`
+     - Set Model Name to `gpt-4.1-mini`
+   - If MCP Server failed to load, please Add MCP Server > Paste in JSON Config below:
+     - ```
+       {
+         "mcpServers": {
+           "stealth-browser": {
+             "type": "stdio",
+             "command": "/app/stealth-browser-mcp/mcp-venv/bin/python",
+             "args": ["/app/stealth-browser-mcp/src/server.py"],
+             "env": {}
+           }
+         }
+       }
+       ```
 6. **Get your Flow ID:**
 
    - Open Langflow UI (http://localhost:7860)
@@ -75,7 +88,8 @@ A complete setup for running a web scraping chatbot powered by Langflow with a F
    * Use this key in the chatbot interface or API requests
 8. **Start chatting:**
 
-   - Enter your Flow ID and Langflow API Key in the web interface
+   - Go to [http://localhost:8000]()
+   - Enter your Flow ID and Langflow API Key
    - Begin chatting with your scraping agent!
 
 ## Services
@@ -162,8 +176,7 @@ scraper-langflow/
 ├── static/
 │   └── index.html        # Chatbot web interface with JSON display
 └── flows/                # Langflow flow definitions
-    ├── [main] scraper agent.json
-    └── subflow - scraper tool.json
+    └── [main] scraper agent.json
 ```
 
 ### Customization
